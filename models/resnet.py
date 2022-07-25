@@ -32,10 +32,11 @@ def batch_norm(X, gamma, beta, moving_mean, moving_var, eps, momentum):
             # mean and variance on the channel dimension (axis=1). Here we
             # need to maintain the shape of `X`, so that the broadcasting
             # operation can be carried out later
+            median = torch.median(X, 0, keepdim=True)
+            median = torch.median(median[0], 2, keepdim=True)
+            median = torch.median(median[0], 3, keepdim=True)    
+            median = median[0]
 
-            median = torch.empty(1, int(X.size()[1]), 1, 1)
-            for index, x in enumerate(torch.transpose(X, 0, 1)):  # X, Y could be permuted to loop over desired axis
-                median[0][index][0][0] = torch.median(x)
 
             median = median.cuda()
             # median = X.median(dim=(0, 2, 3), keepdim=True)
