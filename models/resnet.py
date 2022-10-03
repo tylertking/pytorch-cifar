@@ -33,11 +33,16 @@ def batch_norm(X, gamma, beta, moving_mean, moving_var, eps, momentum):
             # need to maintain the shape of `X`, so that the broadcasting
             # operation can be carried out later
 
-            median = torch.empty(1, int(X.size()[1]), 1, 1)
-            for index, x in enumerate(torch.transpose(X, 0, 1)):  # X, Y could be permuted to loop over desired axis
-                median[0][index][0][0] = torch.median(x)
+            dim0 = X.size(dim=0)
+            dim1 = X.size(dim=1)
+            dim2 = X.size(dim=2)
+            dim3 = X.size(dim=3)
+            temp = torch.reshape(X, (dim0*dim2*dim3, dim1, 1, 1))
+            median = torch.median(temp, dim=0, keepdim=True)
+            median = median[0]
 
-            median = median.cuda()
+            
+            
             # median = X.median(dim=(0, 2, 3), keepdim=True)
             var = ((X - median) ** 2).mean(dim=(0, 2, 3), keepdim=True)
         # In training mode, the current mean and variance are used for the
@@ -143,7 +148,7 @@ class ResNet(nn.Module):
         super(ResNet, self).__init__()
         self.in_planes = 64
 
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=3,
+        self.conv1 = nn.Conv2d(1, 64, kernel_size=3,
                                stride=1, padding=1, bias=False)
         self.bn1 = BatchNorm(64, 4)
         self.layer1 = self._make_layer(block, 64, num_blocks[0], stride=1)

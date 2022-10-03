@@ -14,13 +14,15 @@ import argparse
 from models import *
 
 
+
 parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
 parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
 parser.add_argument('--resume', '-r', action='store_true',
                     help='resume from checkpoint')
 args = parser.parse_args()
 
-device = 'cuda' # if torch.cuda.is_available() else 'cpu'
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+print(device)
 print(torch.cuda.is_available())
 best_acc = 0  # best test accuracy
 start_epoch = 0  # start from epoch 0 or last checkpoint epoch
@@ -31,20 +33,20 @@ transform_train = transforms.Compose([
     transforms.RandomCrop(32, padding=4),
     transforms.RandomHorizontalFlip(),
     transforms.ToTensor(),
-    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    transforms.Normalize([0.5], [0.5]),
 ])
 
 transform_test = transforms.Compose([
     transforms.ToTensor(),
-    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    transforms.Normalize([0.5], [0.5]),
 ])
 
-trainset = torchvision.datasets.CIFAR10(
+trainset = torchvision.datasets.MNIST(
     root='./data', train=True, download=True, transform=transform_train)
 trainloader = torch.utils.data.DataLoader(
     trainset, batch_size=128, shuffle=True, num_workers=0)
 
-testset = torchvision.datasets.CIFAR10(
+testset = torchvision.datasets.MNIST(
     root='./data', train=False, download=True, transform=transform_test)
 testloader = torch.utils.data.DataLoader(
     testset, batch_size=100, shuffle=False, num_workers=0)
@@ -55,7 +57,11 @@ classes = ('plane', 'car', 'bird', 'cat', 'deer',
 # Model
 print('==> Building model..')
 # net = VGG('VGG19')
-net = ResNet18med()
+# net = ResNet18med()
+from models import resnetStd
+#net = resnetStd.ResNet18std()
+from models import resnetAugmented
+net = resnetAugmented.ResNet18aug()
 # net = ResNet18med()
 # net = PreActResNet18()
 # net = GoogLeNet()
@@ -71,9 +77,9 @@ net = ResNet18med()
 # net = RegNetX_200MF()
 # net = SimpleDLA()
 net = net.to(device)
-if device == 'cuda':
+'''if device == 'cuda':
     net = torch.nn.DataParallel(net)
-    cudnn.benchmark = True
+    cudnn.benchmark = True'''
 
 if args.resume:
     # Load checkpoint.
